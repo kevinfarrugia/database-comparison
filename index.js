@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-  'use strict';
+  "use strict";
 
   var tester = createTester();
-  var buttons = document.getElementsByTagName('button');
-  var display = document.getElementById('display');
-  var worker = new Worker('worker.js');
+  var buttons = document.getElementsByTagName("button");
+  var display = document.getElementById("display");
+  var worker = new Worker("worker.js");
 
   function disableButtons(bool) {
     for (var i = 0; i < buttons.length; i++) {
@@ -17,8 +17,10 @@ document.addEventListener("DOMContentLoaded", function () {
     for (var i = 0; i < choices.length; i++) {
       var choice = choices[i];
       if (choice.checked) {
-        var label = document.querySelector('label[for=' + choice.id + ']').innerHTML;
-        return {value: choice.value, label: label};
+        var label = document.querySelector(
+          "label[for=" + choice.id + "]"
+        ).innerHTML;
+        return { value: choice.value, label: label };
       }
     }
   }
@@ -34,10 +36,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function workerPromise(message) {
     return new Promise(function (resolve, reject) {
-
       function cleanup() {
-        worker.removeEventListener('message', onSuccess);
-        worker.removeEventListener('error', onError);
+        worker.removeEventListener("message", onSuccess);
+        worker.removeEventListener("error", onError);
       }
 
       function onSuccess(e) {
@@ -54,82 +55,98 @@ document.addEventListener("DOMContentLoaded", function () {
         reject(e);
       }
 
-      worker.addEventListener('message', onSuccess);
-      worker.addEventListener('error', onError);
+      worker.addEventListener("message", onSuccess);
+      worker.addEventListener("error", onError);
       worker.postMessage(message);
     });
   }
 
+  document
+    .getElementById("insertButton")
+    .addEventListener("click", function () {
+      disableButtons(true);
+      var dbTypeChoice = getChoice("db");
+      var numDocsChoice = getChoice("numDocs");
+      var numDocs = parseInt(numDocsChoice.value, 10);
+      var useWorker = getChoice("worker").value === "true";
+      var cloneWorker = getChoice("worker").value === "clone";
+      display.innerHTML =
+        "Inserting " +
+        numDocs +
+        " docs using " +
+        dbTypeChoice.label +
+        (useWorker ? " in a worker" : "") +
+        "...";
 
-  document.getElementById('insertButton').addEventListener('click', function () {
-    disableButtons(true);
-    var dbTypeChoice = getChoice('db');
-    var numDocsChoice = getChoice('numDocs');
-    var numDocs = parseInt(numDocsChoice.value, 10);
-    var useWorker = getChoice('worker').value === 'true';
-    var cloneWorker = getChoice('worker').value === 'clone';
-    display.innerHTML = 'Inserting ' + numDocs + ' docs using ' +
-      dbTypeChoice.label + (useWorker ? ' in a worker' : '') + '...';
-
-    waitForUI().then(function () {
-      var startTime = Date.now();
-      if (useWorker) {
-        return workerPromise({
-          action: 'test',
-          dbType: dbTypeChoice.value,
-          numDocs: numDocs
-        }).then(function (e) {
-          if (!e.data.success) {
-            throw new Error('did not work');
+      waitForUI()
+        .then(function () {
+          var startTime = Date.now();
+          if (useWorker) {
+            return workerPromise({
+              action: "test",
+              dbType: dbTypeChoice.value,
+              numDocs: numDocs,
+            }).then(function (e) {
+              if (!e.data.success) {
+                throw new Error("did not work");
+              }
+              return Date.now() - startTime;
+            });
+          } else if (cloneWorker) {
+            return workerPromise({
+              action: "test",
+              dbType: dbTypeChoice.value,
+              numDocs: tester.createDocs(numDocs),
+            }).then(function (e) {
+              if (!e.data.success) {
+                throw new Error("did not work");
+              }
+              return Date.now() - startTime;
+            });
           }
-          return Date.now() - startTime;
+          var fun = tester.getTest(dbTypeChoice.value);
+
+          return Promise.resolve()
+            .then(function () {
+              return fun(numDocs);
+            })
+            .then(function () {
+              return Date.now() - startTime;
+            });
+        })
+        .then(function (timeSpent) {
+          display.innerHTML += "\nTook " + timeSpent + "ms";
+          disableButtons(false);
+        })
+        .catch(function (e) {
+          disableButtons(false);
+          display.innerHTML += "\nError: " + e;
+          console.error(e);
         });
-      } else if (cloneWorker) {
-        return workerPromise({
-          action: 'test',
-          dbType: dbTypeChoice.value,
-          numDocs: tester.createDocs(numDocs)
-        }).then(function (e) {
-          if (!e.data.success) {
-            throw new Error('did not work');
+    });
+
+  document
+    .getElementById("deleteButton")
+    .addEventListener("click", function () {
+      display.innerHTML = "Deleting...";
+      disableButtons(true);
+      var useWorker = getChoice("worker").value === "true";
+
+      waitForUI()
+        .then(function () {
+          if (useWorker) {
+            return workerPromise({ action: "cleanup" });
           }
-          return Date.now() - startTime;
+          return tester.cleanup();
+        })
+        .then(function () {
+          disableButtons(false);
+          display.innerHTML += "\nDone.";
+        })
+        .catch(function (e) {
+          disableButtons(false);
+          display.innerHTML += "\nError: " + e;
+          console.error(e);
         });
-      }
-      var fun = tester.getTest(dbTypeChoice.value);
-
-      return Promise.resolve().then(function () {
-        return fun(numDocs);
-      }).then(function () {
-        return Date.now() - startTime;
-      });
-    }).then(function (timeSpent) {
-      display.innerHTML += "\nTook " + timeSpent + "ms";
-      disableButtons(false);
-    }).catch(function (e) {
-      disableButtons(false);
-      display.innerHTML += "\nError: " + e;
-      console.error(e);
     });
-  });
-
-  document.getElementById('deleteButton').addEventListener('click', function () {
-    display.innerHTML = 'Deleting...';
-    disableButtons(true);
-    var useWorker = getChoice('worker').value === 'true';
-
-    waitForUI().then(function () {
-      if (useWorker) {
-        return workerPromise({ action: 'cleanup' });
-      }
-      return tester.cleanup();
-    }).then(function () {
-      disableButtons(false);
-      display.innerHTML += '\nDone.';
-    }).catch(function (e) {
-      disableButtons(false);
-      display.innerHTML += "\nError: " + e;
-      console.error(e);
-    });
-  });
 });

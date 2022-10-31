@@ -1,30 +1,30 @@
 function createTester() {
-  'use strict';
+  "use strict";
 
-  var pouch = new PouchDB('pouch_test');
-  var pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
-  var lokiDB = new loki.Collection('loki_test', {indices: ['id']});
-  var dexieDB = new Dexie('dexie_test');
-  dexieDB.version(1).stores({docs: '++,id'});
+  var pouch = new PouchDB("pouch_test");
+  var pouchWebSQL = new PouchDB("pouch_test_websql", { adapter: "websql" });
+  var lokiDB = new loki.Collection("loki_test", { indices: ["id"] });
+  var dexieDB = new Dexie("dexie_test");
+  dexieDB.version(1).stores({ docs: "++,id" });
   dexieDB.open();
   var openIndexedDBReq;
   var webSQLDB;
   var localForageDB;
   var localForageWebSQLDB;
   var obj, map, set, imMap, imSet;
-  if (typeof localforage !== 'undefined') {
+  if (typeof localforage !== "undefined") {
     localForageDB = localforage.createInstance({
-      name: 'test_localforage'
+      name: "test_localforage",
     });
     localForageWebSQLDB = localforage.createInstance({
-      name: 'test_localforage_websql',
-      driver: localforage.WEBSQL
+      name: "test_localforage_websql",
+      driver: localforage.WEBSQL,
     });
   }
 
   function createDoc() {
     return {
-      data: Math.random()
+      data: Math.random(),
     };
   }
   function createDocs(numDocs) {
@@ -37,13 +37,13 @@ function createTester() {
   function regularObjectTest(docs) {
     obj = {};
     for (var i = 0; i < docs.length; i++) {
-      obj['doc_' + i] = docs[i];
+      obj["doc_" + i] = docs[i];
     }
   }
   function mapTest(docs) {
     map = new Map();
     for (var i = 0; i < docs.length; i++) {
-      map.set('doc_' + i, docs[i]);
+      map.set("doc_" + i, docs[i]);
     }
   }
   function setTest(docs) {
@@ -55,7 +55,7 @@ function createTester() {
   function imMapTest(docs) {
     imMap = new Immutable.Map();
     for (var i = 0; i < docs.length; i++) {
-      imMap = imMap.set('doc_' + i, docs[i]);
+      imMap = imMap.set("doc_" + i, docs[i]);
     }
   }
   function imListTest(docs) {
@@ -65,17 +65,17 @@ function createTester() {
     }
   }
   function imFromJSTest(docs) {
-    var obj = {}
+    var obj = {};
     for (var i = 0; i < docs.length; i++) {
-      obj['doc_' + i] = docs[i]
+      obj["doc_" + i] = docs[i];
     }
     Immutable.fromJS(obj);
   }
   function imMapMergeDeepTest(docs) {
     var imMap = new Immutable.Map();
-    var obj = {}
+    var obj = {};
     for (var i = 0; i < docs.length; i++) {
-      obj['doc_' + i] = docs[i]
+      obj["doc_" + i] = docs[i];
     }
     imMap.mergeDeep(obj);
   }
@@ -87,7 +87,7 @@ function createTester() {
   }
   function localStorageTest(docs) {
     for (var i = 0; i < docs.length; i++) {
-      localStorage['doc_' + i] = JSON.stringify(docs[i]);
+      localStorage["doc_" + i] = JSON.stringify(docs[i]);
     }
   }
 
@@ -97,7 +97,7 @@ function createTester() {
       return doAddDoc;
       function doAddDoc() {
         var doc = docs[i];
-        doc._id = 'doc_' + i;
+        doc._id = "doc_" + i;
         return pouch.put(doc);
       }
     }
@@ -113,7 +113,7 @@ function createTester() {
       return doAddDoc;
       function doAddDoc() {
         var doc = docs[i];
-        doc._id = 'doc_' + i;
+        doc._id = "doc_" + i;
         return pouchWebSQL.put(doc);
       }
     }
@@ -126,7 +126,7 @@ function createTester() {
   function lokiTest(docs) {
     for (var i = 0; i < docs.length; i++) {
       var doc = docs[i];
-      doc.id = 'doc_ ' + i;
+      doc.id = "doc_ " + i;
       lokiDB.insert(doc);
     }
   }
@@ -137,7 +137,7 @@ function createTester() {
       return doAddDoc;
       function doAddDoc() {
         var doc = docs[i];
-        return localForageDB.setItem('doc_' + i, doc);
+        return localForageDB.setItem("doc_" + i, doc);
       }
     }
     for (var i = 0; i < docs.length; i++) {
@@ -152,7 +152,7 @@ function createTester() {
       return doAddDoc;
       function doAddDoc() {
         var doc = docs[i];
-        return localForageWebSQLDB.setItem('doc_' + i, doc);
+        return localForageWebSQLDB.setItem("doc_" + i, doc);
       }
     }
     for (var i = 0; i < docs.length; i++) {
@@ -162,82 +162,95 @@ function createTester() {
   }
 
   function dexieTest(docs) {
-    return dexieDB.transaction('rw', dexieDB.docs, function () {
+    return dexieDB.transaction("rw", dexieDB.docs, function () {
       for (var i = 0; i < docs.length; i++) {
         var doc = docs[i];
-        doc.id = 'doc_' + i;
+        doc.id = "doc_" + i;
         dexieDB.docs.add(doc);
       }
     });
   }
 
   function idbTest(docs) {
-    return Promise.resolve().then(function () {
-      if (openIndexedDBReq) {
-        // reuse the same event to avoid onblocked when deleting
-        return openIndexedDBReq.result;
-      }
-      return new Promise(function (resolve, reject) {
-        var req = openIndexedDBReq = indexedDB.open('test_idb', 1);
-        req.onblocked = reject;
-        req.onerror = reject;
-        req.onupgradeneeded = function (e) {
-          var db = e.target.result;
-          db.createObjectStore('docs', {keyPath: 'id'});
-        };
-        req.onsuccess = function (e) {
-          var db = e.target.result;
-          resolve(db);
-        };
-      });
-    }).then(function (db) {
-      return new Promise(function (resolve, reject) {
-        var txn = db.transaction('docs', 'readwrite');
-        var oStore = txn.objectStore('docs');
-        for (var i = 0; i < docs.length; i++) {
-          var doc = docs[i];
-          doc.id = 'doc_' + i;
-          oStore.put(doc);
+    return Promise.resolve()
+      .then(function () {
+        if (openIndexedDBReq) {
+          // reuse the same event to avoid onblocked when deleting
+          return openIndexedDBReq.result;
         }
-        txn.oncomplete = resolve;
-        txn.onerror = reject;
-        txn.onblocked = reject;
+        return new Promise(function (resolve, reject) {
+          var req = (openIndexedDBReq = indexedDB.open("test_idb", 1));
+          req.onblocked = reject;
+          req.onerror = reject;
+          req.onupgradeneeded = function (e) {
+            var db = e.target.result;
+            db.createObjectStore("docs", { keyPath: "id" });
+          };
+          req.onsuccess = function (e) {
+            var db = e.target.result;
+            resolve(db);
+          };
+        });
+      })
+      .then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var txn = db.transaction("docs", "readwrite");
+          var oStore = txn.objectStore("docs");
+          for (var i = 0; i < docs.length; i++) {
+            var doc = docs[i];
+            doc.id = "doc_" + i;
+            oStore.put(doc);
+          }
+          txn.oncomplete = resolve;
+          txn.onerror = reject;
+          txn.onblocked = reject;
+        });
       });
-    });
   }
 
   function webSQLTest(docs) {
-    return Promise.resolve().then(function () {
-      if (webSQLDB) {
-        return;
-      }
-      return new Promise(function (resolve, reject) {
-        webSQLDB = openDatabase('test_websql', 1, 'test_websql', 5000);
-        webSQLDB.transaction(function (txn) {
-          txn.executeSql(
-            'create table if not exists docs (id text unique, json text);');
-        }, reject, resolve);
+    return Promise.resolve()
+      .then(function () {
+        if (webSQLDB) {
+          return;
+        }
+        return new Promise(function (resolve, reject) {
+          webSQLDB = openDatabase("test_websql", 1, "test_websql", 5000);
+          webSQLDB.transaction(
+            function (txn) {
+              txn.executeSql(
+                "create table if not exists docs (id text unique, json text);"
+              );
+            },
+            reject,
+            resolve
+          );
+        });
+      })
+      .then(function () {
+        return new Promise(function (resolve, reject) {
+          webSQLDB.transaction(
+            function (txn) {
+              for (var i = 0; i < docs.length; i++) {
+                var id = "doc_" + i;
+                var doc = docs[i];
+                txn.executeSql(
+                  "insert or replace into docs (id, json) values (?, ?);",
+                  [id, JSON.stringify(doc)]
+                );
+              }
+            },
+            reject,
+            resolve
+          );
+        });
       });
-    }).then(function () {
-      return new Promise(function (resolve, reject) {
-        webSQLDB.transaction(function (txn) {
-          for (var i = 0; i < docs.length; i++) {
-            var id = 'doc_' + i;
-            var doc = docs[i];
-            txn.executeSql(
-              'insert or replace into docs (id, json) values (?, ?);', [
-                id, JSON.stringify(doc)
-              ]);
-          }
-        }, reject, resolve);
-      });
-    });
   }
   function getTest(db) {
     var fun = _getTest(db);
     return test;
     function test(arg) {
-      if (typeof arg === 'number') {
+      if (typeof arg === "number") {
         var docs = createDocs(arg);
         return fun(docs);
       } else {
@@ -247,46 +260,45 @@ function createTester() {
   }
   function _getTest(db) {
     switch (db) {
-      case 'regularObject':
+      case "regularObject":
         return regularObjectTest;
-      case 'localStorage':
+      case "localStorage":
         return localStorageTest;
-      case 'pouch':
+      case "pouch":
         return pouchTest;
-      case 'pouchWebSQL':
+      case "pouchWebSQL":
         return pouchWebSQLTest;
-      case 'loki':
+      case "loki":
         return lokiTest;
-      case 'localForage':
+      case "localForage":
         return localForageTest;
-      case 'localForageWebSQL':
+      case "localForageWebSQL":
         return localForageWebSQLTest;
-      case 'dexie':
+      case "dexie":
         return dexieTest;
-      case 'idb':
+      case "idb":
         return idbTest;
-      case 'webSQL':
+      case "webSQL":
         return webSQLTest;
-      case 'map':
+      case "map":
         return mapTest;
-      case 'set':
+      case "set":
         return setTest;
-      case 'immap':
+      case "immap":
         return imMapTest;
-      case 'imset':
+      case "imset":
         return imSetTest;
-      case 'imlist':
+      case "imlist":
         return imListTest;
-      case 'imfromjs':
+      case "imfromjs":
         return imFromJSTest;
-      case 'immergedeep':
+      case "immergedeep":
         return imMapMergeDeepTest;
     }
   }
 
-
   function cleanup() {
-    if (typeof localStorage !== 'undefined') {
+    if (typeof localStorage !== "undefined") {
       localStorage.clear();
     }
 
@@ -297,50 +309,56 @@ function createTester() {
 
     var promises = [
       new Promise(function (resolve, reject) {
-        if (typeof openDatabase === 'undefined') {
+        if (typeof openDatabase === "undefined") {
           return resolve();
         }
-        var webSQLDB = openDatabase('test_websql', 1, 'test_websql', 5000);
-        webSQLDB.transaction(function (txn) {
-          txn.executeSql('delete from docs;');
-        }, resolve, resolve);
+        var webSQLDB = openDatabase("test_websql", 1, "test_websql", 5000);
+        webSQLDB.transaction(
+          function (txn) {
+            txn.executeSql("delete from docs;");
+          },
+          resolve,
+          resolve
+        );
       }),
       new Promise(function (resolve, reject) {
         if (openIndexedDBReq) {
           openIndexedDBReq.result.close();
         }
-        var req = indexedDB.deleteDatabase('test_idb');
+        var req = indexedDB.deleteDatabase("test_idb");
         req.onsuccess = resolve;
         req.onerror = reject;
         req.onblocked = reject;
       }),
       Promise.resolve().then(function () {
-        if (typeof localforage !== 'undefined') {
+        if (typeof localforage !== "undefined") {
           return localForageDB.clear();
         }
       }),
       Promise.resolve().then(function () {
-        if (typeof openDatabase !== 'undefined' &&
-            typeof localforage !== 'undefined') {
+        if (
+          typeof openDatabase !== "undefined" &&
+          typeof localforage !== "undefined"
+        ) {
           return localForageWebSQLDB.clear();
         }
       }),
       dexieDB.delete().then(function () {
-        dexieDB = new Dexie('dexie_test');
-        dexieDB.version(1).stores({ docs: '++,id'});
+        dexieDB = new Dexie("dexie_test");
+        dexieDB.version(1).stores({ docs: "++,id" });
         dexieDB.open();
       }),
       pouch.destroy().then(function () {
-        pouch = new PouchDB('pouch_test');
+        pouch = new PouchDB("pouch_test");
       }),
       Promise.resolve().then(function () {
         if (!pouchWebSQL.adapter) {
           return Promise.resolve();
         }
         return pouchWebSQL.destroy().then(function () {
-          pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
+          pouchWebSQL = new PouchDB("pouch_test_websql", { adapter: "websql" });
         });
-      })
+      }),
     ];
 
     return Promise.all(promises);
@@ -349,6 +367,6 @@ function createTester() {
   return {
     getTest: getTest,
     cleanup: cleanup,
-    createDocs: createDocs
-  }
+    createDocs: createDocs,
+  };
 }
