@@ -19,58 +19,22 @@
       <h4>Database</h4>
 
       <div style="display: inline-block">
-        <input
-          type="radio"
-          name="db"
-          id="dbMemory"
-          value="regularObject"
-          checked="checked"
-        />
+        <input type="radio" name="db" id="dbMemory" value="regularObject" />
         <label for="dbMemory">Regular object</label>
         <br />
-        <input
-          type="radio"
-          name="db"
-          id="dbMemMap"
-          value="map"
-          checked="checked"
-        />
+        <input type="radio" name="db" id="dbMemMap" value="map" />
         <label for="dbMemMap">ES6 Map</label>
         <br />
-        <input
-          type="radio"
-          name="db"
-          id="dbMemSet"
-          value="set"
-          checked="checked"
-        />
+        <input type="radio" name="db" id="dbMemSet" value="set" />
         <label for="dbMemSet">ES6 Set</label>
         <br />
-        <input
-          type="radio"
-          name="db"
-          id="imMemMap"
-          value="immap"
-          checked="checked"
-        />
+        <input type="radio" name="db" id="imMemMap" value="immap" />
         <label for="imMemMap">Immutable Map</label>
         <br />
-        <input
-          type="radio"
-          name="db"
-          id="imMemSet"
-          value="imset"
-          checked="checked"
-        />
+        <input type="radio" name="db" id="imMemSet" value="imset" />
         <label for="imMemSet">Immutable Set</label>
         <br />
-        <input
-          type="radio"
-          name="db"
-          id="imMemList"
-          value="imlist"
-          checked="checked"
-        />
+        <input type="radio" name="db" id="imMemList" value="imlist" />
         <label for="imMemList">Immutable List</label>
         <br />
         <input type="radio" name="db" id="imMemFromJS" value="imfromjs" />
@@ -92,7 +56,7 @@
         <input type="radio" name="db" id="webSQL" value="webSQL" />
         <label for="webSQL">WebSQL</label>
         <br />
-        <input type="radio" name="db" id="idb" value="idb" />
+        <input type="radio" name="db" id="idb" value="idb" checked="true" />
         <label for="idb">IndexedDB</label>
         <br />
         <input type="radio" name="db" id="dbLoki" value="loki" />
@@ -123,20 +87,17 @@
     <div>
       <div style="display: inline-block; vertical-align: top">
         <h4>Number of docs</h4>
+        <input type="radio" name="numDocs" id="docs_10000" value="10000" />
+        <label for="docs_10000">10,000</label>
+        <br />
         <input
           type="radio"
           name="numDocs"
-          id="docs_1000"
-          value="1000"
+          id="docs_100000"
+          value="100000"
           checked="checked"
         />
-        <label for="docs_1000">1000</label>
-        <br />
-        <input type="radio" name="numDocs" id="docs_10000" value="10000" />
-        <label for="docs_10000">10000</label>
-        <br />
-        <input type="radio" name="numDocs" id="docs_100000" value="100000" />
-        <label for="docs_100000">100000</label>
+        <label for="docs_100000">100,000</label>
       </div>
       <div
         style="display: inline-block; vertical-align: top; margin-left: 20px"
